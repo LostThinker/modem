@@ -14,7 +14,6 @@ from pathlib import Path
 from torch import distributions as pyd
 from torch.distributions.utils import _standard_normal
 
-
 __REDUCE__ = lambda b: "mean" if b else "none"
 
 
@@ -295,7 +294,7 @@ def get_demos(cfg):
         )
         state = torch.tensor(data["states"], dtype=torch.float32)
         if cfg.task.startswith("mw-"):
-            state = torch.cat((state[:, :4], state[:, 18 : 18 + 4]), dim=-1)
+            state = torch.cat((state[:, :4], state[:, 18: 18 + 4]), dim=-1)
         elif cfg.task.startswith("adroit-"):
             if cfg.task == "adroit-door":
                 state = np.concatenate([state[:, :27], state[:, 29:32]], axis=1)
@@ -308,16 +307,16 @@ def get_demos(cfg):
         actions = np.array(data["actions"], dtype=np.float32).clip(-1, 1)
         if cfg.task.startswith("mw-") or cfg.task.startswith("adroit-"):
             rewards = (
-                np.array(
-                    [
-                        _data[
-                            "success" if "success" in _data.keys() else "goal_achieved"
-                        ]
-                        for _data in data["infos"]
-                    ],
-                    dtype=np.float32,
-                )
-                - 1.0
+                    np.array(
+                        [
+                            _data[
+                                "success" if "success" in _data.keys() else "goal_achieved"
+                            ]
+                            for _data in data["infos"]
+                        ],
+                        dtype=np.float32,
+                    )
+                    - 1.0
             )
         else:  # use dense rewards for DMControl
             rewards = np.array(data["rewards"])
@@ -376,21 +375,21 @@ class ReplayBuffer(object):
     def add(self, episode: Episode):
         obs = episode.obs[:-1, -3:]
         if episode.obs.shape[1] == 3:
-            last_obs = episode.obs[-self.cfg.frame_stack :].view(
+            last_obs = episode.obs[-self.cfg.frame_stack:].view(
                 self.cfg.frame_stack * 3, *self.cfg.obs_shape[-2:]
             )
         else:
             last_obs = episode.obs[-1]
-        self._obs[self.idx : self.idx + self.cfg.episode_length] = obs
+        self._obs[self.idx: self.idx + self.cfg.episode_length] = obs
         self._last_obs[self.idx // self.cfg.episode_length] = last_obs
-        self._action[self.idx : self.idx + self.cfg.episode_length] = episode.action
-        self._reward[self.idx : self.idx + self.cfg.episode_length] = episode.reward
+        self._action[self.idx: self.idx + self.cfg.episode_length] = episode.action
+        self._reward[self.idx: self.idx + self.cfg.episode_length] = episode.reward
         states = torch.tensor(episode.state, dtype=torch.float32)
         self._state[
-            self.idx : self.idx + self.cfg.episode_length, : self._state_dim
+        self.idx: self.idx + self.cfg.episode_length, : self._state_dim
         ] = states[:-1]
         self._last_state[
-            self.idx // self.cfg.episode_length, : self._state_dim
+        self.idx // self.cfg.episode_length, : self._state_dim
         ] = states[-1]
         max_priority = (
             1.0
@@ -398,14 +397,14 @@ class ReplayBuffer(object):
             else self._priorities[: self.idx].max().to(self.device).item()
         )
         mask = (
-            torch.arange(self.cfg.episode_length)
-            >= self.cfg.episode_length - self.cfg.horizon
+                torch.arange(self.cfg.episode_length)
+                >= self.cfg.episode_length - self.cfg.horizon
         )
         new_priorities = torch.full(
             (self.cfg.episode_length,), max_priority, device=self.device
         )
         new_priorities[mask] = 0
-        self._priorities[self.idx : self.idx + self.cfg.episode_length] = new_priorities
+        self._priorities[self.idx: self.idx + self.cfg.episode_length] = new_priorities
         self.idx = (self.idx + self.cfg.episode_length) % self.capacity
 
     def update_priorities(self, idxs, priorities):
@@ -423,7 +422,7 @@ class ReplayBuffer(object):
         for i in range(1, self.cfg.frame_stack):
             mask[_idxs % self.cfg.episode_length == 0] = False
             _idxs[mask] -= 1
-            obs[:, -(i + 1) * 3 : -i * 3] = arr[_idxs].cuda(non_blocking=True)
+            obs[:, -(i + 1) * 3: -i * 3] = arr[_idxs].cuda(non_blocking=True)
         return obs.float()
 
     def sample(self):

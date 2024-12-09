@@ -10,7 +10,6 @@ import pandas as pd
 from termcolor import colored
 from omegaconf import OmegaConf
 
-
 CONSOLE_FORMAT = [
     ("episode", "E", "int"),
     ("env_step", "S", "int"),
@@ -51,12 +50,12 @@ def print_run(cfg):
 
     def pprint(k, v):
         print(
-            prefix + colored(f'{k.capitalize()+":":<16}', color, attrs=attrs), limstr(v)
+            prefix + colored(f'{k.capitalize() + ":":<16}', color, attrs=attrs), limstr(v)
         )
 
     kvs = [
         ("task", cfg.task_title),
-        ("train steps", f"{int(cfg.train_steps*cfg.action_repeat):,}"),
+        ("train steps", f"{int(cfg.train_steps * cfg.action_repeat):,}"),
         ("observations", "x".join([str(s) for s in cfg.obs_shape])),
         ("actions", cfg.action_dim),
         ("experiment", cfg.exp_name),
@@ -128,8 +127,8 @@ class Logger(object):
 
         wandb.init(
             project=project,
-            entity=entity,
-            name=str(cfg.seed),
+            # entity=entity,
+            name=str(cfg.task) + '-' + str(cfg.seed),
             group=self._group,
             tags=cfg_to_group(cfg, return_list=True) + [f"seed:{cfg.seed}"],
             dir=self._log_dir,
@@ -169,12 +168,12 @@ class Logger(object):
 
     def _format(self, key, value, ty):
         if ty == "int":
-            return f'{colored(key+":", "grey")} {int(value):,}'
+            return f'{colored(key + ":", "grey")} {int(value):,}'
         elif ty == "float":
-            return f'{colored(key+":", "grey")} {value:.01f}'
+            return f'{colored(key + ":", "grey")} {value:.01f}'
         elif ty == "time":
             value = str(datetime.timedelta(seconds=int(value)))
-            return f'{colored(key+":", "grey")} {value}'
+            return f'{colored(key + ":", "grey")} {value}'
         else:
             raise f"invalid log format type: {ty}"
 

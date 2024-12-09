@@ -190,7 +190,7 @@ class TDMPC:
             score = torch.exp(self.cfg.temperature * (elite_value - max_value))
             score /= score.sum(0)
             _mean = torch.sum(score.unsqueeze(0) * elite_actions, dim=1) / (
-                score.sum(0) + 1e-9
+                    score.sum(0) + 1e-9
             )
             _std = torch.sqrt(
                 torch.sum(
@@ -216,7 +216,7 @@ class TDMPC:
         """Initialize policy using a behavior cloning objective (iterations: 2x #samples)."""
         self.model.train()
         for _ in tqdm(
-            range(2 * self.cfg.demos * self.cfg.episode_length), "Pretraining policy"
+                range(2 * self.cfg.demos * self.cfg.episode_length), "Pretraining policy"
         ):
             obs, _, action, _, state, _, _, _ = buffer.sample()
             self.bc_optim.zero_grad(set_to_none=True)
@@ -240,7 +240,7 @@ class TDMPC:
         for t, z in enumerate(zs):
             a = self.model.pi(z, self.cfg.min_std)
             Q = torch.min(*self.model.Q(z, a))
-            pi_loss += -Q.mean() * (self.cfg.rho**t)
+            pi_loss += -Q.mean() * (self.cfg.rho ** t)
 
         pi_loss.backward()
         torch.nn.utils.clip_grad_norm_(
@@ -316,7 +316,6 @@ class TDMPC:
 
         consistency_loss, reward_loss, value_loss, priority_loss = 0, 0, 0, 0
         for t in range(self.cfg.horizon):
-
             # Predictions
             Q1, Q2 = self.model.Q(z, action[t])
             z, reward_pred = self.model.next(z, action[t])
@@ -328,7 +327,7 @@ class TDMPC:
             zs.append(z.detach())
 
             # Losses
-            rho = self.cfg.rho**t
+            rho = self.cfg.rho ** t
             consistency_loss += rho * torch.mean(h.mse(z, next_z), dim=1, keepdim=True)
             reward_loss += rho * h.mse(reward_pred, reward[t])
             value_loss += rho * (h.mse(Q1, td_target) + h.mse(Q2, td_target))
@@ -336,9 +335,9 @@ class TDMPC:
 
         # Optimize model
         total_loss = (
-            self.cfg.consistency_coef * consistency_loss.clamp(max=1e4)
-            + self.cfg.reward_coef * reward_loss.clamp(max=1e4)
-            + self.cfg.value_coef * value_loss.clamp(max=1e4)
+                self.cfg.consistency_coef * consistency_loss.clamp(max=1e4)
+                + self.cfg.reward_coef * reward_loss.clamp(max=1e4)
+                + self.cfg.value_coef * value_loss.clamp(max=1e4)
         )
         weighted_loss = (total_loss.squeeze(1) * weights).mean()
         weighted_loss.register_hook(lambda grad: grad * (1 / self.cfg.horizon))
@@ -354,7 +353,7 @@ class TDMPC:
             replay_buffer.update_priorities(
                 idxs[: self.cfg.batch_size], priorities[: self.cfg.batch_size]
             )
-            demo_buffer.update_priorities(demo_idxs, priorities[self.cfg.batch_size :])
+            demo_buffer.update_priorities(demo_idxs, priorities[self.cfg.batch_size:])
 
         pi_loss = self.update_pi(zs)
         if step % self.cfg.update_freq == 0:

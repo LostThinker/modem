@@ -29,7 +29,7 @@ class MetaWorldWrapper(gym.Wrapper):
     @property
     def state(self):
         state = self._state_obs.astype(np.float32)
-        return np.concatenate((state[:4], state[18 : 18 + 4]))
+        return np.concatenate((state[:4], state[18: 18 + 4]))
 
     def _get_pixel_obs(self):
         return self.render(width=self.cfg.img_size, height=self.cfg.img_size).transpose(

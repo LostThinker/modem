@@ -1,9 +1,9 @@
 defaults:
-    - suite@_global_: adroit
+    - suite@_global_: mw
     - override hydra/launcher: submitit_local
 
 # environment
-task: ???
+task: mw-assembly
 discount: 0.99
 img_size: 224
 frame_stack: 2
@@ -48,12 +48,13 @@ mlp_dim: 512
 latent_dim: 50
 
 # wandb (required: fill in your details)
-wandb_project: ???
-wandb_entity: ???
+wandb_project: modem
+wandb_entity: LostThinker
 
 # dirs (required: fill in your details)
-logging_dir: .
-demo_dir: ???
+logging_dir: /home/qianlong/work-space/sample-efficient-mbrl/modem
+demo_dir: /home/qianlong/work-space/sample-efficient-mbrl/modem/demon
+log_time: ???
 
 # misc
 seed: 1

@@ -53,11 +53,15 @@ def evaluate(env, agent, cfg, step, env_step, video):
 @hydra.main(config_name="config", config_path="cfgs")
 def train(cfg: dict):
     """Training script for online TD-MPC."""
+    torch.set_num_threads(8)
     assert torch.cuda.is_available()
     cfg = parse_cfg(cfg)
     set_seed(cfg.seed)
-    work_dir = Path(cfg.logging_dir) / "logs" / cfg.task / cfg.exp_name / str(cfg.seed)
+
+    cfg.log_time = cfg.get('log_time', time.strftime("%Y%m%d%H%M%S", time.localtime()))
+    work_dir = Path(cfg.logging_dir) / "logs" / cfg.suite / cfg.task / f'{str(cfg.log_time)}-seed{cfg.seed}'
     print(colored("Work dir:", "yellow", attrs=["bold"]), work_dir)
+
     env, agent = make_env(cfg), TDMPC(cfg)
     demo_buffer = ReplayBuffer(deepcopy(cfg)) if cfg.get("demos", 0) > 0 else None
     buffer = ReplayBuffer(cfg)
@@ -85,7 +89,7 @@ def train(cfg: dict):
             obs, reward, done, info = env.step(action.cpu().numpy())
             episode += (obs, env.state, action, reward, done)
         assert (
-            len(episode) == cfg.episode_length
+                len(episode) == cfg.episode_length
         ), f"Episode length {len(episode)} != {cfg.episode_length}"
         buffer += episode
 
